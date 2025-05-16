@@ -6,8 +6,6 @@ setup(
     version='0.1.0',
     packages=find_packages(),
     install_requires=[
-        'jax',
-        'jaxlib',
         'numpy',
         'matplotlib',
         'flax',
@@ -16,6 +14,7 @@ setup(
         'tensorflow',
         'tensorflow-datasets',
         'transformers',
+        'wandb',
     ],
     author='David Ulloa, Gabriel Lucchesi',
     author_email='dulloa6310@gmail.com, gabrielhubnerlucchesi@gmail.com',

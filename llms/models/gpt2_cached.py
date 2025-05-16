@@ -124,6 +124,7 @@ class GPT2(nn.Module):
         new_value_caches = []
         for i, block in enumerate(self.blocks):
             # For each block, pass the corresponding cache (if available).
+            print("Value for i", i)
             hidden_states, new_k, new_v = block(
                 hidden_states, 
                 deterministic=deterministic, 
