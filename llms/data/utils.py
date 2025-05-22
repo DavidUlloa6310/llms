@@ -1,16 +1,8 @@
 import pickle
 
+import numpy as np
 import jax
 import jax.numpy as jnp
-
-def save_dataset(dataset, path: str, filename: str):
-    with open(f"{path}/{filename}", "wb") as f:
-        pickle.dump(dataset, f)
-
-
-def read_dataset(path: str):
-    with open(path, "rb") as f:
-        return pickle.load(f)
 
 
 def batch_dataset(dataset, batch_size):
@@ -18,8 +10,11 @@ def batch_dataset(dataset, batch_size):
     for example in dataset:
         batch["input_ids"].append(example["input_ids"])
         if len(batch["input_ids"]) == batch_size:
-            yield {k: jnp.array(v, dtype=jnp.int32) for k, v in batch.items()}
+            yield {k: np.array(v, dtype=np.int32) for k, v in batch.items()}
             batch = {"input_ids": []}
+
+    if batch["input_ids"]:
+        yield {k: np.array(v, dtype=np.int32) for k, v in batch.items()}
 
 
 def shard_batch(batch):

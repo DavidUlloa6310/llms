@@ -1,42 +1,43 @@
+from pathlib import Path
+from datasets import load_dataset, DatasetDict
+from transformers import AutoTokenizer
 import argparse
 
-from datasets import load_dataset
-from transformers import AutoTokenizer
 
-from llms.data.utils import save_dataset
+def build_openweb(split: str = "train", seq_len: int = 1024) -> DatasetDict:
+    tok = AutoTokenizer.from_pretrained("gpt2")
+    tok.pad_token = tok.eos_token
 
+    ds = load_dataset("openwebtext", split=split)
 
-tokenizer = AutoTokenizer.from_pretrained("gpt2")
-tokenizer.pad_token = tokenizer.eos_token
+    def tokenize_fn(examples):
+        tokens = tok(
+            examples["text"],
+            truncation=True,
+            padding="max_length",
+            max_length=seq_len,
+        )
+        return {"input_ids": tokens["input_ids"],
+                "attention_mask": tokens["attention_mask"]}
 
-
-def download_openweb():
-    dataset = load_dataset(
-        "openwebtext"
-    )
-
-    def tokenize_function(examples):
-        return {
-            "input_ids": tokenizer(
-                examples["text"], truncation=True, padding="max_length", max_length=1024
-            )["input_ids"]
-        }
-
-    dataset = dataset.map(tokenize_function, batched=True)
-    dataset = dataset.shuffle(seed=42)
-
-    return dataset
-
-
+    ds = ds.map(tokenize_fn,
+                batched=True,
+                remove_columns=["text"],
+                num_proc=4)
+    ds = ds.shuffle(seed=42)
+    return ds
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Program to download and store openwebtext")
-    parser.add_argument('--path', type=str,
-                        help="Path to downlaod openwebtext")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--path", required=True,
+                        help="Directory in which to save the processed dataset")
     args = parser.parse_args()
 
-    dataset = download_openweb()
-    save_dataset(dataset, args.path, "openwebtext.pkl")
-    print(f"Saved openwebtext dataset to '{args.path}'")
+    out_dir = Path(args.path).expanduser()
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    dataset = build_openweb()
+    # Arrow-based, reload with load_from_disk
+    dataset.save_to_disk(out_dir)
+    print(f"Saved OpenWebText to {out_dir}")
