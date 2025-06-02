@@ -15,9 +15,3 @@ def batch_dataset(dataset, batch_size):
 
     if batch["input_ids"]:
         yield {k: np.array(v, dtype=np.int32) for k, v in batch.items()}
-
-
-def shard_batch(batch):
-    batch_size = batch["input_ids"].shape[0]
-    per_device_batch = batch_size // jax.device_count()
-    return jax.tree.map(lambda x: x.reshape((jax.device_count(), per_device_batch, -1)), batch)

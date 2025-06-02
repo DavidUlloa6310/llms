@@ -14,6 +14,7 @@ setup(
         'tensorflow',
         'tensorflow-datasets',
         'transformers',
+        'jaxtyping',
         'wandb',
     ],
     author='David Ulloa, Gabriel Lucchesi',
